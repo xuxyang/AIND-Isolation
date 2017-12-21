@@ -213,7 +213,46 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        moves = game.get_legal_moves()
+        score, move = max([(self.min_value(game.forecast_move(move), depth - 1), move) for move in moves], key = lambda x: x[0])
+        return move
+
+    def min_value(self, game, depth):
+        """ Return the score value if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if depth == 0:
+            return self.score(game, game.inactive_player)
+
+        moves = game.get_legal_moves()
+
+        if len(moves) == 0:
+            return self.score(game, game.inactive_player)
+            
+        return min([self.max_value(game.forecast_move(move), depth - 1) for move in moves])
+
+
+    def max_value(self, game, depth):
+        """ Return the score value if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if depth == 0:
+            return self.score(game, game.active_player)
+
+        moves = game.get_legal_moves()
+
+        if len(moves) == 0:
+            return self.score(game, game.active_player)
+            
+        return max([self.min_value(game.forecast_move(move), depth - 1) for move in moves])
 
 
 class AlphaBetaPlayer(IsolationPlayer):

@@ -4,7 +4,6 @@ and include the results in your report.
 """
 import random
 
-
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
@@ -345,4 +344,51 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        score, action = self.max_value(game, depth, alpha, beta)
+        return action
+
+    def max_value(self, game, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        finalMove = (-1, -1)
+        if depth == 0:
+            return self.score(game, game.active_player), finalMove
+
+        moves = game.get_legal_moves()
+
+        if len(moves) == 0:
+            return self.score(game, game.active_player), finalMove
+
+        v = float("-inf")
+        for move in moves:
+            child_v, _ = self.min_value(game.forecast_move(move), depth - 1, alpha, beta)
+            v, finalMove = max([(v, finalMove), (child_v, move)], key = lambda x: x[0])
+            if v >= beta:
+                return v, finalMove
+            alpha = max([alpha, v])
+        
+        return v, finalMove
+
+    def min_value(self, game, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        finalMove = (-1, -1)
+        if depth == 0:
+            return self.score(game, game.inactive_player), finalMove
+
+        moves = game.get_legal_moves()
+
+        if len(moves) == 0:
+            return self.score(game, game.inactive_player), finalMove
+
+        v = float("inf")
+        for move in moves:
+            child_v, _ = self.max_value(game.forecast_move(move), depth - 1, alpha, beta)
+            v, finalMove = min([(v, finalMove), (child_v, move)], key = lambda x: x[0])
+            if v <= alpha:
+                return v, finalMove
+            beta = min([beta, v])
+            
+        return v, finalMove

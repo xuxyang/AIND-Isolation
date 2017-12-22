@@ -8,6 +8,10 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
+def terminal_state(game, depth):
+    moves = game.get_legal_moves()
+    return depth == 0 or len(moves) == 0, moves
+
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -224,12 +228,8 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == 0:
-            return self.score(game, game.inactive_player)
-
-        moves = game.get_legal_moves()
-
-        if len(moves) == 0:
+        isTerminalState, moves = terminal_state(game, depth)
+        if isTerminalState:
             return self.score(game, game.inactive_player)
             
         return min([self.max_value(game.forecast_move(move), depth - 1) for move in moves])
@@ -243,12 +243,8 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == 0:
-            return self.score(game, game.active_player)
-
-        moves = game.get_legal_moves()
-
-        if len(moves) == 0:
+        isTerminalState, moves = terminal_state(game, depth)
+        if isTerminalState:
             return self.score(game, game.active_player)
             
         return max([self.min_value(game.forecast_move(move), depth - 1) for move in moves])
@@ -352,12 +348,8 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         finalMove = (-1, -1)
-        if depth == 0:
-            return self.score(game, game.active_player), finalMove
-
-        moves = game.get_legal_moves()
-
-        if len(moves) == 0:
+        isTerminalState, moves = terminal_state(game, depth)
+        if isTerminalState:
             return self.score(game, game.active_player), finalMove
 
         v = float("-inf")
@@ -375,12 +367,8 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         finalMove = (-1, -1)
-        if depth == 0:
-            return self.score(game, game.inactive_player), finalMove
-
-        moves = game.get_legal_moves()
-
-        if len(moves) == 0:
+        isTerminalState, moves = terminal_state(game, depth)
+        if isTerminalState:
             return self.score(game, game.inactive_player), finalMove
 
         v = float("inf")

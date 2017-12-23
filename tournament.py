@@ -128,11 +128,16 @@ def main():
 
     # Define two agents to compare -- these agents will play from the same
     # starting position against the same adversaries in the tournament
+    #test_agents = [
+    #    Agent(AlphaBetaPlayer(score_fn=improved_score), "AB_Improved"),
+    #    Agent(AlphaBetaPlayer(score_fn=custom_score), "AB_Custom"),
+    #    Agent(AlphaBetaPlayer(score_fn=custom_score_2), "AB_Custom_2"),
+    #    Agent(AlphaBetaPlayer(score_fn=custom_score_3), "AB_Custom_3")
+    #]
+    
     test_agents = [
         Agent(AlphaBetaPlayer(score_fn=improved_score), "AB_Improved"),
-        Agent(AlphaBetaPlayer(score_fn=custom_score), "AB_Custom"),
-        Agent(AlphaBetaPlayer(score_fn=custom_score_2), "AB_Custom_2"),
-        Agent(AlphaBetaPlayer(score_fn=custom_score_3), "AB_Custom_3")
+        Agent(AlphaBetaPlayer(score_fn=custom_score), "AB_Custom")
     ]
 
     # Define a collection of agents to compete against the test agents
@@ -145,6 +150,10 @@ def main():
         Agent(AlphaBetaPlayer(score_fn=center_score), "AB_Center"),
         Agent(AlphaBetaPlayer(score_fn=improved_score), "AB_Improved")
     ]
+    
+    #cpu_agents = [
+    #    Agent(RandomPlayer(), "Random"),
+    #]
 
     print(DESCRIPTION)
     print("{:^74}".format("*************************"))

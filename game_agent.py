@@ -188,6 +188,8 @@ class MinimaxPlayer(IsolationPlayer):
         moves = game.get_legal_moves()
         if moves:
             best_move = moves[0]
+        else:
+        	return best_move
 
         try:
             # The try/except block will automatically catch the exception
@@ -243,11 +245,7 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        finalMove = (-1, -1)
-        isTerminalState, moves = terminal_state(game, depth)
-        if isTerminalState:
-            return finalMove
-
+        moves = game.get_legal_moves()
         score, finalMove = max([(self.min_value(game.forecast_move(move), depth - 1), move) for move in moves], key = lambda x: x[0])
         return finalMove
 
@@ -326,6 +324,8 @@ class AlphaBetaPlayer(IsolationPlayer):
         moves = game.get_legal_moves()
         if moves:
             best_move = moves[0]
+        else:
+            return best_move
 
         try:
             # The try/except block will automatically catch the exception
@@ -406,7 +406,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         v = float("-inf")
         for move in moves:
             child_v, _ = self.min_value(game.forecast_move(move), depth - 1, alpha, beta)
-            v, finalMove = max([(v, finalMove), (child_v, move)], key = lambda x: x[0])
+            v, finalMove = max([(child_v, move), (v, finalMove)], key = lambda x: x[0])
             if v >= beta:
                 return v, finalMove
             alpha = max([alpha, v])
@@ -425,7 +425,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         v = float("inf")
         for move in moves:
             child_v, _ = self.max_value(game.forecast_move(move), depth - 1, alpha, beta)
-            v, finalMove = min([(v, finalMove), (child_v, move)], key = lambda x: x[0])
+            v, finalMove = min([(child_v, move), (v, finalMove)], key = lambda x: x[0])
             if v <= alpha:
                 return v, finalMove
             beta = min([beta, v])

@@ -8,9 +8,11 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
-def terminal_state(game, depth):
-    moves = game.get_legal_moves()
-    return depth == 0 or not moves, moves
+def terminal_state(game, depth, player):
+	if player.time_left() < player.TIMER_THRESHOLD:
+		raise SearchTimeout()
+	moves = game.get_legal_moves()
+	return depth == 0 or not moves, moves
 
 
 def custom_score(game, player):
@@ -45,8 +47,11 @@ def custom_score(game, player):
         return float("inf")
 
     w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    return w + h - abs(w-x) - abs(h-y)
+    y1, x1 = game.get_player_location(player)
+    y2, x2 = game.get_player_location(game.get_opponent(player))
+    player_edge =  min([w - abs(w-x1), h - abs(h-y1)])
+    opp_edge = min([w - abs(w-x2), h - abs(h-y2)])
+    return float(player_edge - 2 * opp_edge)
 
 
 def custom_score_2(game, player):
@@ -78,9 +83,9 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    return w + h - abs(w-x) - abs(h-y)
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - 2 * opp_moves)
 
 
 def custom_score_3(game, player):
@@ -114,7 +119,7 @@ def custom_score_3(game, player):
 
     w, h = game.width / 2., game.height / 2.
     y, x = game.get_player_location(player)
-    return w + h - abs(w-x) - abs(h-y)
+    return min([w - abs(w-x), h - abs(h-y)])
 
 
 class IsolationPlayer:
@@ -139,7 +144,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=25.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -257,9 +262,9 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        isTerminalState, moves = terminal_state(game, depth)
+        isTerminalState, moves = terminal_state(game, depth, self)
         if isTerminalState:
-            return self.score(game, game.inactive_player)
+            return self.score(game, self)
             
         return min([self.max_value(game.forecast_move(move), depth - 1) for move in moves])
 
@@ -272,9 +277,9 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        isTerminalState, moves = terminal_state(game, depth)
+        isTerminalState, moves = terminal_state(game, depth, self)
         if isTerminalState:
-            return self.score(game, game.active_player)
+            return self.score(game, self)
             
         return max([self.min_value(game.forecast_move(move), depth - 1) for move in moves])
 
@@ -326,13 +331,15 @@ class AlphaBetaPlayer(IsolationPlayer):
             best_move = moves[0]
         else:
             return best_move
-
+            
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
             depth = 1
             while depth:
-                best_move = self.alphabeta(game, depth)
+                selected_move = self.alphabeta(game, depth)
+                if selected_move != (-1, -1):
+                	best_move = selected_move
                 depth += 1
 
         except SearchTimeout:
@@ -399,14 +406,14 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         finalMove = (-1, -1)
-        isTerminalState, moves = terminal_state(game, depth)
+        isTerminalState, moves = terminal_state(game, depth, self)
         if isTerminalState:
-            return self.score(game, game.active_player), finalMove
+            return self.score(game, self), finalMove
 
         v = float("-inf")
         for move in moves:
             child_v, _ = self.min_value(game.forecast_move(move), depth - 1, alpha, beta)
-            v, finalMove = max([(child_v, move), (v, finalMove)], key = lambda x: x[0])
+            v, finalMove = max([(v, finalMove), (child_v, move)], key = lambda x: x[0])
             if v >= beta:
                 return v, finalMove
             alpha = max([alpha, v])
@@ -418,14 +425,14 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         finalMove = (-1, -1)
-        isTerminalState, moves = terminal_state(game, depth)
+        isTerminalState, moves = terminal_state(game, depth, self)
         if isTerminalState:
-            return self.score(game, game.inactive_player), finalMove
+            return self.score(game, self), finalMove
 
         v = float("inf")
         for move in moves:
             child_v, _ = self.max_value(game.forecast_move(move), depth - 1, alpha, beta)
-            v, finalMove = min([(child_v, move), (v, finalMove)], key = lambda x: x[0])
+            v, finalMove = min([(v, finalMove), (child_v, move)], key = lambda x: x[0])
             if v <= alpha:
                 return v, finalMove
             beta = min([beta, v])

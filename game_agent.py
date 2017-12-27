@@ -41,18 +41,15 @@ def custom_score(game, player):
     """
     # TODO: finish this function!
     if game.is_loser(player):
-        return float("-inf")
+        return float('-inf')
 
     if game.is_winner(player):
-        return float("inf")
+        return float('inf')
 
-    w, h = game.width / 2., game.height / 2.
-    y1, x1 = game.get_player_location(player)
-    y2, x2 = game.get_player_location(game.get_opponent(player))
-    player_edge =  min([w - abs(w-x1), h - abs(h-y1)])
-    opp_edge = min([w - abs(w-x2), h - abs(h-y2)])
-    return float(player_edge - 2 * opp_edge)
-
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - 2 * opp_moves)
+    
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -78,14 +75,35 @@ def custom_score_2(game, player):
     """
     # TODO: finish this function!
     if game.is_loser(player):
-        return float("-inf")
+        return float('-inf')
 
     if game.is_winner(player):
-        return float("inf")
+        return float('inf')
 
-    own_moves = len(game.get_legal_moves(player))
-    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(own_moves - 2 * opp_moves)
+
+    y1, x1 = game.get_player_location(player)
+    player_edge_x = game.width-1-x1
+    if x1 < player_edge_x:
+    	player_edge_x = x1
+    player_edge_y = game.height-1-y1
+    if y1 < player_edge_y:
+    	player_edge_y = y1
+    player_edge = player_edge_x
+    if player_edge_y < player_edge_x:
+    	player_edge = player_edge_y
+    	
+    y2, x2 = game.get_player_location(game.get_opponent(player))
+    opp_edge_x = game.width-1-x2
+    if x2 < opp_edge_x:
+    	opp_edge_x = x2
+    opp_edge_y = game.height-1-y2
+    if y2 < opp_edge_y:
+    	opp_edge_y = y2
+    opp_edge = opp_edge_x
+    if opp_edge_y < opp_edge_x:
+    	opp_edge = opp_edge_y
+    
+    return float(player_edge - 2 * opp_edge)
 
 
 def custom_score_3(game, player):
@@ -112,14 +130,40 @@ def custom_score_3(game, player):
     """
     # TODO: finish this function!
     if game.is_loser(player):
-        return float("-inf")
+        return float('-inf')
 
     if game.is_winner(player):
-        return float("inf")
+        return float('inf')
 
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    return min([w - abs(w-x), h - abs(h-y)])
+    if len(game.get_blank_spaces()) >= game.width * game.height - 12:
+    	y1, x1 = game.get_player_location(player)
+    	player_edge_x = game.width-1-x1
+    	if x1 < player_edge_x:
+    		player_edge_x = x1
+    	player_edge_y = game.height-1-y1
+    	if y1 < player_edge_y:
+    		player_edge_y = y1
+    	player_edge = player_edge_x
+    	if player_edge_y < player_edge_x:
+    		player_edge = player_edge_y
+    	
+    	y2, x2 = game.get_player_location(game.get_opponent(player))
+    	opp_edge_x = game.width-1-x2
+    	if x2 < opp_edge_x:
+    		opp_edge_x = x2
+    	opp_edge_y = game.height-1-y2
+    	if y2 < opp_edge_y:
+    		opp_edge_y = y2
+    	opp_edge = opp_edge_x
+    	if opp_edge_y < opp_edge_x:
+    		opp_edge = opp_edge_y
+    
+    	return float(player_edge - 2 * opp_edge)
+    else:
+    	own_moves = len(game.get_legal_moves(player))
+    	opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    	return float(own_moves - 2 * opp_moves)
+    
 
 
 class IsolationPlayer:
@@ -343,7 +387,7 @@ class AlphaBetaPlayer(IsolationPlayer):
                 depth += 1
 
         except SearchTimeout:
-            pass
+        	pass
 
         # Return the best move from the last completed search iteration
         return best_move
